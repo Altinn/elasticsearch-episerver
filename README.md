@@ -11,10 +11,10 @@ Please refer to this page for the latest guide on how to install Elasticsearch o
 https://www.elastic.co/downloads/elasticsearch
 
 ### Norwegian settings
-ElasticEpiserver contains some special settings that only apply for norwegian indexes. To enable these, you need to place the following two text files in your Elasticsearch installation's `/config` directory. 
+ElasticEpiserver contains some special settings that only apply for norwegian indexes. To enable these, you need to place the two text files located in `ElasticSearch-config` in your Elasticsearch installation's `/config` directory. 
 
- - [nynorsk.txt](https://www.dropbox.com/s/occztlflcbsjzan/nynorsk.txt?dl=0)
- - [norwegian_stop.txt](https://www.dropbox.com/s/jt1qwmcpud64378/norwegian_stop.txt?dl=0)
+ - [nynorsk.txt](https://github.com/Altinn/elasticsearch-episerver/blob/master/ElasticSearch-config/nynorsk.txt)
+ - [norwegian_stop.txt](https://github.com/Altinn/elasticsearch-episerver/blob/master/ElasticSearch-config/norwegian_stop.txt)
 
 It is important that these files' names remain untouched.
 
