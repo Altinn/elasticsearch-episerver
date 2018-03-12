@@ -1,1 +1,1 @@
-# elastic-search-episerver
+# Elasticsearch for EpiServer
