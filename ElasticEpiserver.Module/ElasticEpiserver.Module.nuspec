@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Bouvet.Episerver.ElasticEpiserver</id>
-    <version>$version$</version>
+    <version>1.0.0</version>
     <title>ElasticEpiserver</title>
     <authors>Bouvet</authors>
     <owners>Bouvet</owners>
@@ -12,13 +12,13 @@
     <tags>EPiServerModulePackage Episerver Elasticsearch Bouvet</tags>
     <projectUrl>https://github.com/Altinn/elasticsearch-episerver</projectUrl>
     <dependencies>
-      <dependency id="EPiServer.CMS.UI.Core" version="[11.1.0, 12.0)" />
+      <dependency id="EPiServer.CMS.UI.Core" version="[10.10.2, 11.0)" />
       <dependency id="NEST" version="5.6.0" />
       <dependency id="Elasticsearch.Net" version="5.6.0" />
     </dependencies>
   </metadata>
   <files>
-    <file src="bin\$configuration$\ElasticEpiserver.Module.dll" target="lib\net461\" />
+    <file src="bin\$configuration$\ElasticEpiserver.Module.dll" target="lib\net452\" />
     <file src="Views\**\*" target="content\modules\ElasticEpiserver.Module\Views\" />
     <file src="ClientResources\**\*" target="content\modules\ElasticEpiserver.Module\ClientResources\" />
     <file src="module.config" target="content\modules\ElasticEpiserver.Module\" />

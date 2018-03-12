@@ -172,14 +172,14 @@ namespace ElasticEpiserver.Module.Engine.Indexing
 
             if (IsFallbackLanguageCandidate(localizable))
             {
-                var norwegianCultures = GetNorwegianCultures();
+                NorwegianCulture norwegianCulture = GetNorwegianCulture();
 
                 // This content is in bokmål master language while it does not exist in nynorsk
-                var document = ParsePage(ContentLoader().Get<IContent>(content.ContentLink, norwegianCultures.Bokmal));
+                var document = ParsePage(ContentLoader().Get<IContent>(content.ContentLink, norwegianCulture.Bokmal));
 
                 if (document != null && document.IsValid())
                 {
-                    document.LanguageName = norwegianCultures.Nynorsk.Name;
+                    document.LanguageName = norwegianCulture.Nynorsk.Name;
                     document.IsFallbackLanguage = bool.TrueString;
 
                     documents.Add(document);
@@ -398,14 +398,14 @@ namespace ElasticEpiserver.Module.Engine.Indexing
 
             if (IsFallbackLanguageCandidate(localizable))
             {
-                var norwegianCultures = GetNorwegianCultures();
+                NorwegianCulture norwegianCulture = GetNorwegianCulture();
 
                 // This content is in bokmål master language while it does not exist in nynorsk
-                var document = ParsePage(ContentLoader().Get<IContent>(content.ContentLink, norwegianCultures.Bokmal));
+                var document = ParsePage(ContentLoader().Get<IContent>(content.ContentLink, norwegianCulture.Bokmal));
 
                 if (document != null && document.IsValid())
                 {
-                    document.LanguageName = norwegianCultures.Nynorsk.Name;
+                    document.LanguageName = norwegianCulture.Nynorsk.Name;
                     document.IsFallbackLanguage = bool.TrueString;
 
                     documents.Add(document);

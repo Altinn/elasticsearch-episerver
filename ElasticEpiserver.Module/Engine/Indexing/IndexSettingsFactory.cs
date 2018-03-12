@@ -122,7 +122,7 @@ namespace ElasticEpiserver.Module.Engine.Indexing
 
         private static IndexState GetNorwegianState(Language variant)
         {
-            var norwegianCultures = ElasticEpiLanguageHelper.GetNorwegianCultures();
+            ElasticEpiLanguageHelper.NorwegianCulture norwegianCulture = ElasticEpiLanguageHelper.GetNorwegianCulture();
 
             var settings = new IndexSettings
             {
@@ -162,7 +162,7 @@ namespace ElasticEpiserver.Module.Engine.Indexing
                             "epi_editor_synonyms", new SynonymTokenFilter
                             {
                                 IgnoreCase = true,
-                                Synonyms = SynonymHelper.ResolveSynonymsForLanguage(variant == Language.Bokmal ? norwegianCultures.Bokmal.Name : norwegianCultures.Nynorsk.Name),
+                                Synonyms = SynonymHelper.ResolveSynonymsForLanguage(variant == Language.Bokmal ? norwegianCulture.Bokmal.Name : norwegianCulture.Nynorsk.Name),
                                 Tokenizer = "keyword",
                                 Expand = true
                             }

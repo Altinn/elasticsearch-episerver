@@ -351,7 +351,7 @@ namespace ElasticEpiserver.Module.Controllers
 
             var viewModel = new SearchResultViewModel();
 
-            var norwegianCultures = ElasticEpiLanguageHelper.GetNorwegianCultures().Bokmal;
+            CultureInfo norwegianCulture = ElasticEpiLanguageHelper.GetNorwegianCulture().Bokmal;
 
             foreach (var res in result.Items)
             {
@@ -363,7 +363,7 @@ namespace ElasticEpiserver.Module.Controllers
                     Type = res.Document.TypeName,
                     ContentGuid = res.Document.ContentGuid,
                     Language = res.Document.LanguageName,
-                    PublishDate = res.Document.StartPublish?.ToString(norwegianCultures.DateTimeFormat.ShortDatePattern),
+                    PublishDate = res.Document.StartPublish?.ToString(norwegianCulture.DateTimeFormat.ShortDatePattern),
                     Score = res.Score.ToString("G")
                 });
             }

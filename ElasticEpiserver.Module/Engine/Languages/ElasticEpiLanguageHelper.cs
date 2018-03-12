@@ -54,9 +54,13 @@ namespace ElasticEpiserver.Module.Engine.Languages
             return false;
         }
 
-        public static NorwegianCultures GetNorwegianCultures()
+        public static NorwegianCulture GetNorwegianCulture()
         {
-            var norwegianCulture = new NorwegianCultures();
+            NorwegianCulture norwegianCulture = new NorwegianCulture
+            {
+                Nynorsk = null,
+                Bokmal = null
+            };
 
             var cultures = ServiceLocator.Current.GetInstance<ILanguageBranchRepository>().ListEnabled()
                 .Select(x => x.Culture).ToList();
@@ -80,7 +84,7 @@ namespace ElasticEpiserver.Module.Engine.Languages
             return norwegianCulture;
         }
 
-        public class NorwegianCultures
+        public class NorwegianCulture
         {
             public CultureInfo Nynorsk { get; set; }
             public CultureInfo Bokmal { get; set; }
