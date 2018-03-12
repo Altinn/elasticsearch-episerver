@@ -1,0 +1,310 @@
+﻿@model ElasticEpiserver.Module.Models.AdministrationToolViewModel
+
+<div class="row">
+    <div class="col-xs-12">
+        <br />
+        <div class="alert alert-info" role="alert">
+            On this page you can specify synonyms for your different languages.
+            <br />
+            <br />
+            Word = british<br />
+            Synonym = english
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xs-12">
+        <br />
+        <div class="list-group" id="accordion">
+            @foreach (var language in Model.AvailableLanguages)
+            {
+                <a class="list-group-item collapsed" data-toggle="collapse" href="#@language.Code" data-parent="accordion">
+                    <div class="row">
+                        <div class="col-md-12">
+                            @language.Name
+                        </div>
+                    </div>
+                </a>
+                <div id="@language.Code" class="panel-collapse collapse" data-parent="accordion">
+
+                    <div class="well well-sm" style="margin-bottom: 0">
+                        <div class="list-group">
+                            <div class="list-group-item text-muted">
+                                <div class="row">
+                                    @{var addSynonymItemFormId = string.Format("form-new-synonym-item_{0}", language.Code);}
+
+                                    <form id="@addSynonymItemFormId">
+                                        <div class="col-md-3">
+                                            <input class="form-control" type="text" name="word" placeholder="Add new word..." />
+                                        </div>
+                                        <div class="col-md-9">
+                                            <div class="input-group">
+                                                <input class="form-control" type="text" name="synonyms" placeholder="Synonyms... (separated by commas)" />
+                                                <span class="input-group-btn">
+                                                    <button class="btn btn-success" type="submit"><i class="fa fa-plus"></i> Add</button>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        @{ var listGroupId = string.Format("list-group_{0}", language.Code);}
+
+                        <div class="list-group" id="@listGroupId">
+                            <div class="list-group-item text-muted list-group-item-info">
+                                <div class="row">
+                                    <div class="col-md-1"></div>
+                                    <div class="col-md-3">
+                                        <i class="fa fa-language"></i> Word
+                                    </div>
+                                    <div class="col-md-6">
+                                        <i class="fa fa-chain"></i> Synonyms
+                                    </div>
+                                    <div class="col-md-2">
+                                        <i class="fa fa-plus"></i> Add new synonym
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if (Model.SynonymContainers.ContainsKey(language.Code))
+                            {
+                                foreach (var synonymContainer in Model.SynonymContainers[language.Code])
+                                {
+                                    var deleteAnchorId = string.Format("anchor-delete_{0}_{1}", synonymContainer.Word.Replace(" ", "--"), synonymContainer.Language);
+
+                                    <div class="list-group-item text-muted">
+                                        <div class="row">
+                                            <div class="col-md-1" id="slett">
+                                                <i class="fa fa-remove"></i> <a href="#" id="@deleteAnchorId">Delete</a>
+                                            </div>
+                                            <div class="col-md-3">
+                                                @synonymContainer.Word
+                                            </div>
+                                            <div class="col-md-6">
+
+                                                @{
+                                                    var removeSynonymFormId = string.Format("form-remove-synonym_{0}_{1}", synonymContainer.Word.Replace(" ", "--"), synonymContainer.Language);
+                                                    var synonymContainerId = string.Format("container_{0}_{1}", synonymContainer.Word.Replace(" ", "--"), synonymContainer.Language);
+                                                }
+
+                                                <form class="form-inline" id="@removeSynonymFormId">
+                                                    <div id="@synonymContainerId">
+
+                                                        @foreach (var synonym in synonymContainer.Synonyms)
+                                                        {
+                                                            var divId = string.Format("synonym_{0}_{1}_{2}", synonymContainer.Word.Replace(" ", "--"), synonymContainer.Language, synonym.Replace(" ", "--"));
+
+                                                            <div class="input-group input-group-sm" style="margin-bottom: 5px;" id="@divId">
+                                                                <div class="form-control">@synonym</div>
+                                                                <span class="input-group-btn">
+                                                                    <button class="btn btn-default" type="submit" name="@synonym.Replace(" ", "--")"><i class="fa fa-remove"></i></button>
+                                                                </span>
+                                                            </div>
+                                                        }
+
+                                                    </div>
+                                                </form>
+
+                                            </div>
+                                            <div class="col-md-2">
+                                                @{var addSynonymFormId = string.Format("form-add-synonym_{0}_{1}", synonymContainer.Word.Replace(" ", "--"), synonymContainer.Language);}
+
+                                                <form id="@addSynonymFormId">
+                                                    <div class="input-group">
+                                                        <input class="form-control" type="text" name="synonym" />
+                                                        <span class="input-group-btn">
+                                                            <button class="btn btn-primary" type="submit" style="height: 34px;"><i class="fa fa-plus"></i></button>
+                                                        </span>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("#accordion a").click(function () {
+            if ($(this).hasClass("collapsed")) {
+                $(this).addClass("active");
+            } else {
+                $(this).removeClass("active");
+            }
+        });
+
+        var toSafeString = function ($word) {
+            // replace spaces with double dashes (--)
+            return $word.replace(/\s/g, '--');
+        };
+
+        var fromSafeString = function ($word) {
+            // replace double dashes with spaces
+            return $word.replace(/--/g, ' ');
+        };
+
+        var addEventListeners = function () {
+            $("form[id^=form-add-synonym]").each(function () {
+                $(this).unbind('submit').bind('submit', function (e) {
+                    e.preventDefault();
+
+                    var $input = $(this).find("input[name=synonym]");
+                    var $synonym = $input.val();
+
+                    $input.val('');
+
+                    if (!$synonym.trim()) // empty
+                        return;
+
+                    var $formId = $(this).attr('id');
+
+                    var $word = $formId.split("_")[1];
+                    var $language = $formId.split("_")[2];
+
+                    $.post('/elasticepi-admin/search-admin/add-synonym', {
+                        word: fromSafeString($word),
+                        language: $language,
+                        synonym: fromSafeString($synonym)
+                    }, function () {
+                        var $container = $("div[id='container_" + $word + "_" + $language + "']");
+
+                        var $html = $(
+                            "<div class='input-group input-group-sm' style='margin-bottom:5px' id='synonym_" + toSafeString($word) + "_" + $language + "_" + toSafeString($synonym) + "'>" +
+                            "<div class='form-control'>" + $synonym + "</div>" +
+                            "<span class='input-group-btn'><button class='btn btn-default' type='submit' name='" + toSafeString($synonym) + "'><i class='fa fa-remove'></i></button></span>" +
+                            "</div>");
+
+                        $container.append($html);
+                    });
+                });
+            });
+
+            $("form[id^=form-remove-synonym]").unbind('submit').bind('submit', function (e) {
+                e.preventDefault();
+
+                var $form = $(this);
+                var $button = $(document.activeElement);
+
+                var $word = $form.attr('id').split("_")[1];
+                var $language = $form.attr('id').split("_")[2];
+                var $synonym = $button.attr('name');
+
+                var $div = $("div[id=synonym_" + $word + "_" + $language + "_" + toSafeString($synonym) + "]");
+
+                $.post('/elasticepi-admin/search-admin/remove-synonym', {
+                    word: fromSafeString($word),
+                    language: $language,
+                    synonym: fromSafeString($synonym)
+                }, function () {
+                    $div.remove();
+                });
+            });
+
+            $("div[id^=slett]").each(function () {
+                var $div = $(this);
+
+                $div.find("a").unbind('click').bind('click', function () {
+                    var $anchor = $(this);
+                    var $word = $anchor.attr('id').split('_')[1];
+                    var $language = $anchor.attr('id').split('_')[2];
+
+                    $.post('/elasticepi-admin/search-admin/delete-synonym-container', {
+                        word: fromSafeString($word),
+                        language: $language
+                    }, function () {
+                        $div.parent().parent().remove();
+                    });
+                });
+            });
+        };
+
+        addEventListeners();
+
+        // synonym items
+
+        $("form[id^=form-new-synonym-item]").each(function () {
+            $(this).on('submit', function (e) {
+                e.preventDefault();
+
+                var $wordInput = $(this).find("input[name=word]");
+                var $synonymsInput = $(this).find("input[name=synonyms]");
+
+                var $language = $(this).attr('id').split("_")[1];
+
+                var $word = $wordInput.val();
+                var $synonyms = [];
+
+                if (!$word.trim()) // empty
+                    return;
+
+                $.each($synonymsInput.val().split(','), function (key, $value) {
+                    if ($value.trim()) {
+                        $synonyms.push($value);
+                    }
+                });
+
+                $wordInput.val('');
+                $synonymsInput.val('');
+
+                $.post("/elasticepi-admin/search-admin/create-synonym-container", {
+                    word: $word,
+                    synonyms: JSON.stringify($synonyms),
+                    language: $language
+                }, function () {
+                    var $html = $(
+                        "<div class='list-group-item text-muted'>" +
+                        "<div class='row'>" +
+                        "<div class='col-md-1' id='slett'><i class='fa fa-remove'></i> <a href='#' id='anchor-delete_" + toSafeString($word) + "_" + $language + "'>Slett</a></div>" +
+                        "<div class='col-md-3'>" + $word + "</div>" +
+                        "<div class='col-md-6'>" +
+                        "<form class='form-inline' id='form-remove-synonym_" + toSafeString($word) + "_" + $language + "'>" +
+                        "<div id='container_" + toSafeString($word) + "_" + $language + "'></div>" +
+                        "</form>" +
+                        "</div>" +
+                        "<div class='col-md-2'>" +
+                        "<form id='form-add-synonym_" + toSafeString($word) + "_" + $language + "'>" +
+                        "<div class='input-group'>" +
+                        "<input class='form-control' type='text' name='synonym'/>" +
+                        "<span class='input-group-btn'>" +
+                        "<button class='btn btn-primary' type='submit'><i class='fa fa-plus'></i></button>" +
+                        "</span>" +
+                        "</div>" +
+                        "</form>" +
+                        "</div>" +
+                        "</div>" +
+                        "</div>");
+
+                    var $listGroupId = "list-group_" + $language;
+
+                    $("div[id=" + $listGroupId + "]").append($html);
+
+                    if ($synonyms.length > 0) {
+                        var $synonymsContainer = $("div[id=container_" + toSafeString($word) + "_" + $language + "]");
+
+                        $.each($synonyms, function (key, $synonym) {
+                            var $markup = $(
+                                "<div class='input-group input-group-sm' style='margin-bottom:5px' id='synonym_" + toSafeString($word) + "_" + $language + "_" + toSafeString($synonym) + "'>" +
+                                "<div class='form-control'>" + $synonym + "</div>" +
+                                "<span class='input-group-btn'><button class='btn btn-default' type='submit' name='" + toSafeString($synonym) + "'><i class='fa fa-remove'></i></button></span>" +
+                                "</div>");
+
+                            $synonymsContainer.append($markup);
+                        });
+                    }
+
+                    addEventListeners();
+                });
+            });
+        });
+    });
+</script>

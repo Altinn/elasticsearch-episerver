@@ -1,0 +1,120 @@
+﻿@model ElasticEpiserver.Module.Models.AdministrationToolViewModel
+
+
+<div class="row">
+    <div class="col-xs-12">
+        <br />
+        <div class="alert alert-info" role="alert">
+            On this page you can test the search engine. Select the language in which you want to search and enter your search query.
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xs-12">
+        <form id="searchForm">
+            <div class="form-group">
+                <div class="btn-group" data-toggle="buttons">
+                    @{ int i = 0; }
+                    @foreach (var lang in Model.AvailableLanguages)
+                    {
+                        <label class="btn btn-default @(lang.Code == Model.AvailableLanguages[0].Code ? "active" : string.Empty)">
+                            <input type="radio" name="languageInput" value="@lang.Code" autocomplete="off" @(i == 0 ? "checked": string.Empty)> @lang.Code
+                        </label>
+                        i++;
+                    }
+                </div>
+                <hr />
+                <div class="input-group">
+                    <input type="text" id="SearchInput" class="form-control" placeholder="Enter search query..." required />
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="submit">Search</button>
+                    </span>
+                </div>
+            </div>
+        </form>
+        <hr />
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="list-group" id="searchResult"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("searchForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+        search();
+    });
+
+    $('#btn-update-template').click(function () {
+        $('#btn-update-template').html("<i class='fa fa-cog fa-spin'></i> Updating");
+        $('#btn-update-template').prop('disabled', true);
+        $.post("/elasticepi-admin/search-admin/updateEngine", function (response) {
+            console.log(response);
+        }).fail(function (error) {
+            console.log(error);
+        }).always(function () {
+            $('#btn-update-template').html("Update Template");
+            $('#btn-update-template').prop('disabled', false);
+        });
+    });
+
+    function search() {
+        var searchValue = document.getElementById("SearchInput").value;
+
+        if (!searchValue.trim()) return;
+
+        var languageValue = $('input[name="languageInput"]:checked').val();
+
+        $.post("/elasticepi-admin/search-admin/search", {
+            "searchString": searchValue,
+            "language": languageValue
+        }, displaySearchResult);
+    }
+
+    function clearSearchResult() {
+        $("#searchResult").empty();
+    }
+
+    function displaySearchResult(searchResult) {
+        clearSearchResult();
+
+        var $result = JSON.parse(searchResult);
+        var $container = $("#searchResult");
+
+        $container.append("Your search resulted in " + $result.Items.length + ($result.Items.length === 1 ? ' hit' : ' hits'));
+
+        $($result.Items).each(function ($key, $content) {
+
+            var $anchor = "<a href='/elasticepi-admin/search-admin/hit?query=" + document.getElementById('SearchInput').value.trim() + "&language=" + $content.Language + "&contentGuid=" + $content.ContentGuid + "' target='_blank'>" + $content.Title + "</a>";
+            var $html =
+                "<div class='list-group-item'>" +
+                    "<div class='row'>" +
+                    "<div class='col-xs-12'>" +
+                    "<h4>" + $anchor + " <span class='label label-success pull-right'><i class='fa fa-star'></i> " + $content.Score + "</span></h4>" +
+                    "<span class='label label-info'><i class='fa fa-calendar-o'></i> Published " + $content.PublishDate + "</span> " +
+                    "<span class='label label-warning'><i class='fa fa-cube'></i> " + $content.Type + "</span>" +
+                    "<br/><br/>" +
+                    "<div class='well well-sm'>" +
+                    ($content.Ingress ?
+                    "<blockquote>" +
+                    "<p>" + $content.Ingress + "</p>" +
+                    "</blockquote>" : '') +
+                    $content.Content +
+                    "</div>" +
+                    "</div>" +
+                    "</div>" +
+                    "</div>";
+
+            $container.append($html);
+        });
+    }
+
+    function handleSearchError(err) {
+        console.log("Handle Error: ");
+        console.log("err", err);
+    }
+
+</script>

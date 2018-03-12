@@ -1,0 +1,68 @@
+﻿@using ElasticEpiserver.Module.Controllers
+@using EPiServer.Framework.Web.Mvc.Html
+@using EPiServer.Shell
+@model ElasticEpiserver.Module.Models.AdministrationToolViewModel
+
+@{
+    Layout = null;
+}
+
+<html>
+<head>
+    @Html.CssLink(Paths.ToClientResource(typeof(AdministrationToolController), "ClientResources/css/bootstrap.min.css"))
+    @Html.CssLink(Paths.ToClientResource(typeof(AdministrationToolController), "ClientResources/css/font-awesome.min.css"))
+    @Html.Raw(Html.ScriptResource(Paths.ToClientResource(typeof(AdministrationToolController), "ClientResources/js/jquery-3.3.1.min.js")))
+</head>
+<body>
+<div class="container">
+    <div class="page-header"><h1>ElasticEpiserver <small>Administration Tool</small></h1></div>
+    <div class="row">
+        <div class="col-xs-offset-10 col-xs-2">
+            <button id="btn-update-template" class="btn btn-info btn-block">Update Template</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <ul class="nav nav-tabs" id="navigation">
+                <li role="presentation" class="active"><a href="#welcome" data-toggle="tab">Welcome</a></li>
+                <li role="presentation"><a href="#boosts" data-toggle="tab">Boosts</a></li>
+                <li role="presentation"><a href="#decay" data-toggle="tab">Decay</a></li>
+                <li role="presentation"><a href="#synonyms" data-toggle="tab">Synonyms</a></li>
+                <li role="presentation"><a href="#bestbets" data-toggle="tab">Best Bets</a></li>
+                <li role="presentation"><a href="#weights" data-toggle="tab">Weights</a></li>
+                <li role="presentation"><a href="#kibana" data-toggle="tab">Kibana</a></li>
+                <li role="presentation"><a href="#search" data-toggle="tab">Search</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="tab-content">
+        <div id="welcome" class="tab-pane fade in active">
+            @Html.Partial(Paths.ToClientResource(typeof(AdministrationToolController), "Views/Partials/Welcome.cshtml"), Model)
+        </div>
+        <div id="boosts" class="tab-pane">
+            @Html.Partial(Paths.ToClientResource(typeof(AdministrationToolController), "Views/Partials/Boosts.cshtml"), Model)
+        </div>
+        <div id="decay" class="tab-pane fade">
+            @Html.Partial(Paths.ToClientResource(typeof(AdministrationToolController), "Views/Partials/Decay.cshtml"), Model)
+        </div>
+        <div id="synonyms" class="tab-pane fade">
+            @Html.Partial(Paths.ToClientResource(typeof(AdministrationToolController), "Views/Partials/Synonyms.cshtml"), Model)
+        </div>
+        <div id="bestbets" class="tab-pane fade">
+            @Html.Partial(Paths.ToClientResource(typeof(AdministrationToolController), "Views/Partials/BestBets.cshtml"), Model)
+        </div>
+        <div id="kibana" class="tab-pane fade">
+            @Html.Partial(Paths.ToClientResource(typeof(AdministrationToolController), "Views/Partials/Kibana.cshtml"), Model)
+        </div>
+        <div id="weights" class="tab-pane fade">
+            @Html.Partial(Paths.ToClientResource(typeof(AdministrationToolController), "Views/Partials/Weights.cshtml"), Model)
+        </div>
+        <div id="search" class="tab-pane fade">
+            @Html.Partial(Paths.ToClientResource(typeof(AdministrationToolController), "Views/Partials/Search.cshtml"), Model)
+        </div>
+    </div>
+</div>
+@Html.Raw(Html.ScriptResource(Paths.ToClientResource(typeof(AdministrationToolController), "ClientResources/js/bootstrap.min.js")))
+</body>
+</html>

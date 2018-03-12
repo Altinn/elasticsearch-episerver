@@ -1,0 +1,95 @@
+﻿@using System.Globalization
+@model ElasticEpiserver.Module.Models.AdministrationToolViewModel
+
+<div class="row">
+    <div class="col-xs-12">
+        <br />
+        <div class="alert alert-info" role="alert">
+            Boosting lets you impact the relevance of content in specific areas of your Episerver tree.
+            <br />Content that exists as a child of a <strong>Parent Page</strong> with boost 2 will have twice the relevance as children of a <strong>Parent Page</strong> with boost 1.
+            <br /><br />The following shows all your page types that implement the <strong>ISearchConfigurableParent</strong> interface.
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-12">
+        <div class="list-group">
+            <div class="list-group-item text-muted list-group-item-info">
+                <div class="row">
+                    <div class="col-md-9"><i class="fa fa-object-group"></i> Parent Page</div>
+                    <div class="col-md-2"><i class="fa fa-sliders"></i> Boost</div>
+                    <div class="col-md-1"></div>
+                </div>
+            </div>
+
+            @foreach (var boost in Model.Boosts.OrderBy(b => b.Breadcrumb))
+            {
+                var rateInputId = string.Format("input-boost-rate_{0}", boost.Model.ContentGuid);
+                var saveButtonId = string.Format("button-save-boost_{0}", boost.Model.ContentGuid);
+                var formId = string.Format("form-save-boost_{0}", boost.Model.ContentGuid);
+
+                <div class="list-group-item text-muted">
+                    <form id="@formId">
+                        <input type="hidden" name="contentGuid" value="@boost.Model.ContentGuid" />
+                        <div class="row">
+                            <div class="col-md-9">
+                                @if (!string.IsNullOrWhiteSpace(boost.Breadcrumb))
+                                {
+                                    <small class="text-muted">@boost.Breadcrumb ></small>
+                                }
+
+                                @boost.Name
+                            </div>
+                            <div class="col-md-2">
+                                <input id="@rateInputId" class="form-control" name="rate" type="number" min="0.1" max="4" step="0.1" value="@boost.Model.Value.ToString("F", CultureInfo.InvariantCulture)" />
+                            </div>
+                            <div class="col-md-1">
+                                <button type="submit" id="@saveButtonId" disabled class="btn btn-default pull-right"><i class="fa fa-save"></i> Save</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("form[id^=form-save-boost]").each(function () {
+            var $form = $(this);
+
+            $form.on('submit', function (e) {
+                e.preventDefault();
+
+                var $id = $form.attr('id').split("_")[1];
+                var $rateInput = $('input[id=input-boost-rate_' + $id + ']');
+                var $saveButton = $('button[id=button-save-boost_' + $id + ']');
+
+                var $data = $form.serialize();
+
+                $.post('/elasticepi-admin/search-admin/save-boost', $data, function () {
+                    $rateInput.fadeOut();
+                    $rateInput.fadeIn();
+
+                    $saveButton.attr("disabled", "disabled");
+                    $saveButton.removeClass("btn-success");
+                });
+            });
+        });
+
+        var updateButtonState = function ($input) {
+            var $id = $input.attr('id').split("_")[1];
+            var $button = $('button[id=button-save-boost_' + $id);
+
+            $button.removeAttr("disabled");
+            $button.addClass("btn-success");
+        };
+
+        $("input[id^=input-boost-rate]").each(function () {
+            $(this).on("input", function () {
+                updateButtonState($(this));
+            });
+        });
+    });
+</script>

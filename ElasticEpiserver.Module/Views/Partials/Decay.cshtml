@@ -1,0 +1,162 @@
+﻿@using System.Globalization
+@model ElasticEpiserver.Module.Models.AdministrationToolViewModel
+
+<div class="row">
+    <div class="col-xs-12">
+        <br />
+        <div class="alert alert-info" role="alert">
+            Decay lets you decrease relevance of old documents.
+            <br /><br />
+            The <strong>Current</strong> parameter specifies how long a document should remain untouched by decay. When the decay starts, it will take <strong>Duration</strong> days before the document scores will be multiplied by <strong>Rate</strong>.
+            <br /><br />
+            <br />The following shows all your page types that implement the <strong>ISearchConfigurableParent</strong> interface.
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-12">
+        <div class="alert alert-warning" role="alert">
+            All decays are inactive by default. Be sure to check the <strong>Active</strong> box to enable them.
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-12">
+        <div class="list-group">
+            <div class="list-group-item text-muted list-group-item-info">
+                <div class="row">
+                    <div class="col-md-1"><i class="fa fa-bolt"></i> Active</div>
+                    <div class="col-md-4"><i class="fa fa-object-group"></i> Container Page</div>
+                    <div class="col-md-2"><i class="fa fa-calendar-check-o"></i> Current</div>
+                    <div class="col-md-2"><i class="fa fa-sort-amount-asc"></i> Duration</div>
+                    <div class="col-md-2"><i class="fa fa-sliders"></i> Rate</div>
+                    <div class="col-md-1"></div>
+                </div>
+            </div>
+
+            @foreach (var decay in Model.Decays.OrderBy(d => d.Breadcrumb))
+            {
+                var activeInputId = string.Format("active_{0}", decay.Model.ContentGuid);
+                var daysInputId = string.Format("days_{0}", decay.Model.ContentGuid);
+                var rateInputId = string.Format("rate_{0}", decay.Model.ContentGuid);
+                var offsetInputId = string.Format("offset_{0}", decay.Model.ContentGuid);
+                var saveButtonId = string.Format("save_{0}", decay.Model.ContentGuid);
+                var formId = string.Format("form-save-decay_{0}", decay.Model.ContentGuid);
+
+                <div class="list-group-item text-muted">
+                    <form id="@formId">
+                        <div class="row">
+                            <div class="col-md-1"><input type="checkbox" id="@activeInputId" @(decay.Model.IsActive ? "checked" : string.Empty) /></div>
+                            <div class="col-md-4">
+                                @if (!string.IsNullOrWhiteSpace(decay.Breadcrumb))
+                                {
+                                    <small class="text-muted">@decay.Breadcrumb ></small>
+                                }
+
+                                @decay.Name
+                            </div>
+                            <div class="col-md-2">
+                                <div class="input-group">
+                                    <input id="@offsetInputId" class="form-control" type="number" min="1" step="1" value="@decay.Model.Offset" />
+                                    <span class="input-group-addon">days</span>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="input-group">
+                                    <input id="@daysInputId" class="form-control" type="number" min="1" step="1" value="@decay.Model.Scale" />
+                                    <span class="input-group-addon">days</span>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <input id="@rateInputId" class="form-control" type="number" min="0.01" max="0.99" step="0.01" value="@decay.Model.Rate.ToString("F", CultureInfo.InvariantCulture)" />
+                            </div>
+                            <div class="col-md-1">
+                                <button type="submit" id="@saveButtonId" disabled class="btn btn-default pull-right"><i class="fa fa-save"></i> Save</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("form[id^=form-save-decay]").each(function () {
+            var $form = $(this);
+
+            $form.on('submit', function (e) {
+                e.preventDefault();
+
+                var $id = $form.attr('id').split("_")[1];
+
+                var $activeInput = $('input[id=active_' + $id);
+                var $daysInput = $('input[id=days_' + $id + ']');
+                var $rateInput = $('input[id=rate_' + $id + ']');
+                var $offsetInput = $('input[id=offset_' + $id + ']');
+                var $saveButton = $('button[id=save_' + $id + ']');
+
+                var $daysValue = $daysInput.val();
+                var $rateValue = $rateInput.val();
+                var $offsetValue = $offsetInput.val();
+
+                var $isActive = $activeInput.is(':checked');
+
+                $.post('/elasticepi-admin/search-admin/save-decay', {
+                    contentGuid: $id,
+                    isActive: $isActive,
+                    days: $daysValue,
+                    rate: $rateValue,
+                    offset: $offsetValue,
+                    boost: 1.0
+                }, function () {
+                    $activeInput.fadeOut();
+                    $daysInput.fadeOut();
+                    $rateInput.fadeOut();
+                    $offsetInput.fadeOut();
+
+                    $activeInput.fadeIn();
+                    $daysInput.fadeIn();
+                    $rateInput.fadeIn();
+                    $offsetInput.fadeIn();
+
+                    $saveButton.attr("disabled", "disabled");
+                    $saveButton.removeClass("btn-success");
+                });
+            });
+        });
+
+        var updateButtonState = function ($input) {
+            var $id = $input.attr('id').split("_")[1];
+            var $button = $('button[id=save_' + $id);
+
+            $button.removeAttr("disabled");
+            $button.addClass("btn-success");
+        };
+
+        $("input[id^=rate]").each(function () {
+            $(this).on("input", function () {
+                updateButtonState($(this));
+            });
+        });
+
+        $("input[id^=offset]").each(function () {
+            $(this).on("input", function () {
+                updateButtonState($(this));
+            });
+        });
+
+        $("input[id^=days]").each(function () {
+            $(this).on("input", function () {
+                updateButtonState($(this));
+            });
+        });
+
+        $("input[id^=active]").each(function () {
+            $(this).on("click", function () {
+                updateButtonState($(this));
+            });
+        });
+    });
+</script>

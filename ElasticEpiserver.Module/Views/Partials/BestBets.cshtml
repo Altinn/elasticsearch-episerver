@@ -1,0 +1,352 @@
+﻿@using ElasticEpiserver.Module.Controllers
+@using EPiServer.Framework.Web.Mvc.Html
+@using EPiServer.Shell
+@model ElasticEpiserver.Module.Models.AdministrationToolViewModel
+
+@Html.CssLink(Paths.ToClientResource(typeof(AdministrationToolController), "ClientResources/css/dataTables.bootstrap.min.css"))
+
+<div class="row">
+    <div class="col-xs-12">
+        <br />
+        <div class="alert alert-info" role="alert">
+            Bets bets lets you override Elasticsearch's document score and force specific documents to appear on top of the search result. <br />
+            Start by creating a new best bet query and populate it with documents by clicking on the cog wheel icon. You can drag and drop the order in which the documents should appear.
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xs-12">
+        <br />
+        <div class="list-group" id="accordion-bestbets">
+            @foreach (var language in Model.AvailableLanguages)
+            {
+                var divId = string.Format("bestbets-{0}", language.Code);
+                var containerId = string.Format("container_{0}", language.Code);
+
+                <a class="list-group-item collapsed" data-toggle="collapse" href="#@divId" data-parent="accordion-bestbets">
+                    <div class="row">
+                        <div class="col-md-12">
+                            @language.Name
+                        </div>
+                    </div>
+                </a>
+                <div id="@divId" class="panel-collapse collapse" data-parent="accordion-bestbets">
+                    <div class="well well-sm" style="margin-bottom: 0;">
+                        <div class="list-group">
+                            <div class="list-group-item text-muted">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        @{var addBestBetFormId = string.Format("form-new-bestbet_{0}", language.Code);}
+
+                                        <form id="@addBestBetFormId">
+                                            <div class="input-group">
+                                                <input class="form-control" type="text" name="keyword" placeholder="Add new keyword..." />
+                                                <span class="input-group-btn">
+                                                    <button class="btn btn-success" type="submit"><i class="fa fa-plus"></i> Add</button>
+                                                </span>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" id="@containerId">
+                            @if (Model.BestBets.ContainsKey(language.Code))
+                            {
+                                foreach (var bestBet in Model.BestBets[language.Code])
+                                {
+                                    var bestBetItemId = string.Format("bestbetitem_{0}", bestBet.Model.Id.ExternalId);
+                                    var listId = string.Format("sortable_{0}_{1}", bestBet.Model.Id.ExternalId, language.Code);
+                                    var modalTarget = string.Format("modal-{0}", language.Code);
+                                    var buttonId = string.Format("openmodalbutton_{0}_{1}", bestBet.Model.Id.ExternalId, language.Code);
+                                    var keywordId = string.Format("keyword_{0}", bestBet.Model.Id.ExternalId);
+
+                                    <div class="col-md-3" id="@bestBetItemId">
+                                        <div class="list-group-item list-group-item-info">
+                                            <div class="row">
+                                                <div class="col-md-10">
+                                                    Keyword: <strong id="@keywordId">@bestBet.Model.Keyword</strong>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <button id="@buttonId" class="btn btn-xs btn-info pull-right" data-toggle="modal" data-target="#@modalTarget"><i class="fa fa-gear"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <ul id="@listId" class="list-group">
+                                            @foreach (var content in bestBet.Contents)
+                                            {
+                                                <li class="ui-state-default list-group-item" style="cursor: pointer;" id="@content.Model.ContentGuid"><i class="fa fa-arrows-v pull-right"></i> @content.Name</li>
+                                            }
+                                        </ul>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@foreach (var language in Model.Content.Keys)
+{
+    var modalId = string.Format("modal-{0}", language);
+    var modalLabelId = string.Format("modallabel_{0}", language);
+    var contentName = string.Format("content-{0}", language);
+    var tableId = string.Format("table_{0}", language);
+    var saveButtonId = string.Format("savemodalbutton_{0}", language);
+    var deleteButtonId = string.Format("deletebutton_{0}", language);
+
+    <div class="modal fade" id="@modalId" tabindex="-1" role="dialog" aria-labelledby="@modalLabelId">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <div class="modal-title" id="@modalLabelId"><h2>Choose pages for language: @language</h2></div>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-hover table-striped" id="@tableId">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                            </tr>
+                        </thead>
+                        <tbody name="@contentName">
+                            @foreach (var content in Model.Content[language])
+                            {
+                                <tr style="cursor: pointer;" id="@content.ContentGuid">
+                                    <td>@content.Name</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger pull-left" data-dismiss="modal" id="@deleteButtonId">Delete</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" id="@saveButtonId">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@Html.Raw(Html.ScriptResource(Paths.ToClientResource(typeof(AdministrationToolController), "ClientResources/js/jquery-ui.min.js")))
+@Html.Raw(Html.ScriptResource(Paths.ToClientResource(typeof(AdministrationToolController), "ClientResources/js/jquery.dataTables.min.js")))
+@Html.Raw(Html.ScriptResource(Paths.ToClientResource(typeof(AdministrationToolController), "ClientResources/js/dataTables.bootstrap.min.js")))
+@Html.Raw(Html.ScriptResource(Paths.ToClientResource(typeof(AdministrationToolController), "ClientResources/js/dataTables.select.min.js")))
+
+<script>
+    $(document).ready(function () {
+        var $dataTables = {};
+        var $currentBestBetItemId = "";
+        var $selectedRowIds = [];
+
+        var $dataTableLanguage = {
+            "decimal": "",
+            "emptyTable": "No hits",
+            "info": "Viser _START_-_END_  av _TOTAL_",
+            "infoEmpty": "No hits",
+            "infoFiltered": "(totalt _MAX_)",
+            "infoPostFix": "",
+            "thousands": "",
+            "lengthMenu": "show _MENU_ pages",
+            "loadingRecords": "Loading...",
+            "processing": "Loading...",
+            "search": "Search",
+            "zeroRecords": "No pages found",
+            "paginate": {
+                "first": "First",
+                "last": "Last",
+                "next": "Next",
+                "previous": "Previous"
+            }
+        };
+
+        $("#accordion-bestbets a").click(function () {
+            if ($(this).hasClass("collapsed")) {
+                $(this).addClass("active");
+            } else {
+                $(this).removeClass("active");
+            }
+        });
+
+        function enableListSorting() {
+            $("ul[id^=sortable]").each(function () {
+                $(this).sortable({
+                    cursor: "move",
+                    stop: function () {
+                        var $list = $(this);
+                        var $id = $list.attr('id').split("_")[1];
+
+                        var $order = $list.children().length;
+                        var $orders = {};
+
+                        $list.children().each(function () {
+                            var $child = $(this);
+                            var $contentGuid = $child.attr('id');
+
+                            $orders[$contentGuid] = $order--;
+                        });
+
+                        $.post('/elasticepi-admin/search-admin/order-bestbet-contents', {
+                            id: $id,
+                            order: $orders
+                        });
+                    }
+                });
+            });
+        }
+
+        function enableOpenModalButtonListeners() {
+            $("button[id^=openmodalbutton]").each(function () {
+                var $button = $(this);
+                var $id = $button.attr('id').split("_")[1];
+                var $language = $button.attr('id').split("_")[2];
+
+                $button.unbind('click').bind('click', function () {
+                    var $list = $("ul[id=sortable_" + $id + "_" + $language + "]");
+
+                    $selectedRowIds = [];
+
+                    $list.find("li").each(function () {
+                        $selectedRowIds.push("#" + $(this).attr('id')); // i.e. #12345
+                    });
+
+                    var $table = $dataTables[$language];
+
+                    $table.rows({ selected: true }).deselect();
+                    $table.rows($selectedRowIds).select();
+
+                    $currentBestBetItemId = $id;
+
+                    var $contentName = $("strong[id=keyword_" + $id + "]").text();
+
+                    $("div[id=modallabel_" + $language + "]").html("<h2>Choose pages for keyword <strong>" + $contentName + "</strong></h2>");
+                    $("button[id=deletebutton_" + $language + "]").html("Delete <strong>" + $contentName + "</strong>");
+                });
+            });
+        }
+
+        $("form[id^=form-new-bestbet]").each(function () {
+            var $form = $(this);
+
+            $form.unbind('submit').bind('submit', function (e) {
+                e.preventDefault();
+
+                var $language = $form.attr('id').split("_")[1];
+                var $input = $form.find("input[name=keyword]");
+
+                var $container = $("div[id=container_" + $language + "]");
+
+                $.post('/elasticepi-admin/search-admin/create-bestbet', {
+                    keyword: $input.val(),
+                    language: $language
+                }, function ($id) {
+                    $(
+                        "<div class='col-md-3' id='bestbetitem_" + $id + "'>" +
+                        "<div class='list-group-item list-group-item-info'>" +
+                        "<div class='row'>" +
+                        "<div class='col-md-10'>Keyword: <strong id='keyword_" + $id + "'>" + $input.val() + "</strong></div>" +
+                        "<div class='col-md-2'><button id='openmodalbutton_" + $id + "_" + $language + "' class='btn btn-xs btn-info pull-right' data-toggle='modal' data-target='#modal-" + $language + "'><i class='fa fa-gear'></i></button></div>" +
+                        "</div>" +
+                        "</div>" +
+                        "<ul id='sortable_" + $id + "_" + $language + "' class='list-group'></ul>" +
+                        "</div>").hide().appendTo($container).show('fast');
+
+                    $input.val('');
+
+                    enableOpenModalButtonListeners();
+                    enableListSorting();
+                });
+            });
+        });
+
+        enableListSorting();
+        enableOpenModalButtonListeners();
+
+        $("button[id^=savemodalbutton]").each(function () {
+            var $button = $(this);
+            var $language = $button.attr('id').split("_")[1];
+
+            $button.click(function () {
+                var $list = $("ul[id=sortable_" + $currentBestBetItemId + "_" + $language + "]");
+                var $table = $dataTables[$language];
+
+                $table.rows($selectedRowIds).every(function () {
+
+                    var $isSelected = $(this.node()).hasClass('info');
+
+                    if (!$isSelected) {
+                        var $listItemId = this.ids()[0];
+                        $list.find("li[id=" + $listItemId + "]").remove();
+
+                        $.post('/elasticepi-admin/search-admin/remove-bestbet-content', {
+                            id: $currentBestBetItemId,
+                            contentGuid: $listItemId
+                        });
+                    }
+                });
+
+                $table.rows({ selected: true }).every(function () {
+                    var $listItemId = this.ids()[0];
+                    var $listItemAlreadyExists = $list.find("li[id=" + $listItemId + "]").length > 0;
+                    var $contentName = this.data();
+
+                    if (!$listItemAlreadyExists) {
+                        $.post('/elasticepi-admin/search-admin/add-bestbet-content', {
+                            id: $currentBestBetItemId,
+                            contentGuid: $listItemId
+                        });
+
+                        var $html =
+                            "<li class='ui-state-default list-group-item' style='cursor: pointer;' id='" + $listItemId + "'>" +
+                            "<i class='fa fa-arrows-v pull-right'></i> " + $contentName +
+                            "</li>";
+
+                        $list.append($html);
+                    }
+                });
+
+                $currentBestBetItemId = "";
+            });
+        });
+
+        $("button[id^=deletebutton]").each(function () {
+            var $button = $(this);
+
+            $button.unbind('click').bind('click', function () {
+                var $div = $("div[id=bestbetitem_" + $currentBestBetItemId + "]");
+
+                $div.hide('slow', function () {
+                    $div.remove();
+                });
+
+                $.post('/elasticepi-admin/search-admin/delete-bestbet', {
+                    id: $currentBestBetItemId
+                });
+            });
+        });
+
+        $("table[id^=table]").each(function () {
+            var $table = $(this);
+
+            var $language = $table.attr('id').split("_")[1];
+
+            $table = $table.DataTable({
+                language: $dataTableLanguage,
+                select: {
+                    style: 'multi',
+                    className: 'info',
+                    info: false
+                }
+            });
+
+            $dataTables[$language] = $table;
+        });
+    });
+</script>

@@ -1,0 +1,17 @@
+﻿@model ElasticEpiserver.Module.Models.AdministrationToolViewModel
+
+<br />
+<div class="row">
+    <div class="col-xs-12">
+        <div class="alert alert-warning" role="alert">
+            For Kibana to show up here you must set the <strong>KibanaDashboardUrl</strong> property of <strong>ElasticEpiClient</strong> to your Kibana Dashboard's URL.
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xs-12">
+        <iframe src="@(Model.KibanaDashboardUrl)" width="100%" height="100%"></iframe>
+    </div>
+</div>
+<br /><br /><br />
